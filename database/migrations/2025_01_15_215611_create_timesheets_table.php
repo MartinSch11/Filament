@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('departments', function (Blueprint $table) {
+        Schema::create('timesheets', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->foreignId('calendar_id');
+            $table->foreignId('user_id');
+            $table->enum('type',['work','pause'])->default('work');
+            $table->timestamp('day_in');
+            $table->timestamp('day_out');
             $table->timestamps();
         });
     }
@@ -23,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('departaments');
+        Schema::dropIfExists('timesheets');
     }
 };
