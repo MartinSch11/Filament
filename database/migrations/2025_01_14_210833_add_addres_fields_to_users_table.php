@@ -12,11 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            //
-            $table->foreignId('contry_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('state_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('city_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->string('addres')->nullable();
+            $table->foreignId('country_id')->nullable()->constrained('countries')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('state_id')->nullable()->constrained('states')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('city_id')->nullable()->constrained('cities')->onUpdate('cascade')->onDelete('cascade');
+            $table->string('address')->nullable();
             $table->string('postal_code')->nullable();
         });
     }
@@ -27,7 +26,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            // Elimina las columnas que se agregaron en el método up()
         });
     }
 };
