@@ -33,57 +33,65 @@ class UserResource extends Resource
             ->schema([
 
                 Section::make('Personal Info')
-                ->columns(3)
-                ->schema([
-                    // ...
-                    Forms\Components\TextInput::make('name')
-                    ->required(),
-                    Forms\Components\TextInput::make('email')
-                        ->email()
-                        ->required(),
-                    Forms\Components\TextInput::make('password')
-                        ->password()
-                        ->hiddenOn('edit')
-                        ->required(),
-                ]),
+                    ->columns(3)
+                    ->schema([
+                        // ...
+                        Forms\Components\TextInput::make('name')
+                            ->Label('Nombre')
+                            ->required(),
+                        Forms\Components\TextInput::make('email')
+                            ->Label('Email')
+                            ->email()
+                            ->required(),
+                        Forms\Components\TextInput::make('password')
+                            ->Label('Contraseña')
+                            ->password()
+                            ->hiddenOn('edit')
+                            ->required(),
+                    ]),
 
                 Section::make('Address Info')
-                ->columns(3)
-                ->schema([
-                    // ...
-                    Forms\Components\Select::make('country_id')
-                    ->relationship(name : 'country', titleAttribute:'name')
-                    ->searchable()
-                    ->preload()
-                    ->live()
-                    ->afterStateUpdated(function (Set $set) {
-                        $set('state_id',null);
-                        $set('city_id',null);
-                    } )
-                    ->required(),
-                    Forms\Components\Select::make('state_id')
-                    ->options(fn (Get $get): Collection => State::query()
-                        ->where('country_id', $get('country_id'))
-                        ->pluck('name','id'))
-                    ->searchable()
-                    ->preload()
-                    ->live()
-                    ->afterStateUpdated(fn (Set $set) =>$set('city_id',null))
-                    ->required(),
-                    Forms\Components\Select::make('city_id')
-                    ->options(fn (Get $get): Collection => City::query()
-                        ->where('state_id', $get('state_id'))
-                        ->pluck('name','id'))
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-                    Forms\Components\TextInput::make('address')
-                    ->required(),
-                    Forms\Components\TextInput::make('postal_code')
-                    ->required(),
+                    ->columns(3)
+                    ->schema([
+                        // ...
+                        Forms\Components\Select::make('country_id')
+                            ->relationship(name: 'country', titleAttribute: 'name')
+                            ->Label('País')
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function (Set $set) {
+                                $set('state_id', null);
+                                $set('city_id', null);
+                            })
+                            ->required(),
+                        Forms\Components\Select::make('state_id')
+                            ->options(fn(Get $get): Collection => State::query()
+                                ->where('country_id', $get('country_id'))
+                                ->pluck('name', 'id'))
+                            ->Label('Provincia')
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(fn(Set $set) => $set('city_id', null))
+                            ->required(),
+                        Forms\Components\Select::make('city_id')
+                            ->options(fn(Get $get): Collection => City::query()
+                                ->where('state_id', $get('state_id'))
+                                ->pluck('name', 'id'))
+                            ->Label('Ciudad')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                        Forms\Components\TextInput::make('address')
+                            ->Label('Dirección')
+                            ->required(),
+                        Forms\Components\TextInput::make('postal_code')
+                        ->Label('Código Postal')
+                            ->required(),
 
 
-                ])
+                    ])
             ]);
     }
 
@@ -92,14 +100,18 @@ class UserResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                ->Label('Nombre')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
+                ->Label('Email')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('address')
+                ->Label('Dirección')
                     ->sortable()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('postal_code')
+                ->Label('Código Postal')
                     ->sortable()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
@@ -121,6 +133,7 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

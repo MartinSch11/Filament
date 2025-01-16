@@ -18,14 +18,18 @@ class DepartmentResource extends Resource
 {
     protected static ?string $model = Department::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Manejo del sistema';
+    protected static ?int $navigationSort = 4;
+
+
+    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 //
-                    Forms\Components\TextInput::make('name')
+                Forms\Components\TextInput::make('name')
                     ->required(),
             ]);
     }
@@ -34,7 +38,8 @@ class DepartmentResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
             ])
             ->filters([
                 //
