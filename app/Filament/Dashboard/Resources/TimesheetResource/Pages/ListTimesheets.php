@@ -65,7 +65,7 @@ class ListTimesheets extends ListRecords
             Actions\Action::make('stopWork')
                 ->label('Parar de trabajar')
                 ->keyBindings(['command+o', 'ctrl+o'])
-                ->color('success')
+                ->color('danger')
                 ->visible($lastTimesheet->day_out == null && $lastTimesheet->type != 'pause')
                 ->disabled(!$lastTimesheet->day_out == null)
                 ->requiresConfirmation()

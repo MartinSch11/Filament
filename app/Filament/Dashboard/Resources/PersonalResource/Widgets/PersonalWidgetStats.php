@@ -15,6 +15,8 @@ class PersonalWidgetStats extends BaseWidget
 {
     protected function getStats(): array
     {
+
+
         return [
             Stat::make('Pending Holidays', $this->getPendingHoliday(Auth::user())),
             Stat::make('Approved Holidays', $this->getApprovedHoliday(Auth::user())),
@@ -23,52 +25,94 @@ class PersonalWidgetStats extends BaseWidget
         ];
     }
 
-    protected function getPendingHoliday(User $user){
-        $totalPendingHolidays = Holidays::where('user_id',$user->id)
-            ->where('type','pending')->get()->count();
+    protected function getPendingHoliday(User $user)
+    {
+        $totalPendingHolidays = Holidays::where('user_id', $user->id)
+            ->where('type', 'pending')->get()->count();
 
-            return $totalPendingHolidays;
+        return $totalPendingHolidays;
     }
-    protected function getApprovedHoliday(User $user){
-        $totalApprovedHolidays = Holidays::where('user_id',$user->id)
-            ->where('type','approved')->get()->count();
+    protected function getApprovedHoliday(User $user)
+    {
+        $totalApprovedHolidays = Holidays::where('user_id', $user->id)
+            ->where('type', 'approved')->get()->count();
 
-            return $totalApprovedHolidays;
+        return $totalApprovedHolidays;
     }
-    protected function getTotalWork(User $user){
+    protected function getTotalWork(User $user)
+    {
+        // Obtén los registros de hoy para el usuario y el tipo 'work'
         $timesheets = Timesheet::where('user_id', $user->id)
-            ->where('type','work')->whereDate('created_at', Carbon::today())->get();
+            ->where('type', 'work')
+            ->whereDate('created_at', Carbon::today())
+            ->get();
+
         $sumSeconds = 0;
+
         foreach ($timesheets as $timesheet) {
-            # code...
-            $startTime = Carbon::parse($timesheet->day_in);
-            $finishTime = Carbon::parse($timesheet->day_out);
+            // Si el usuario ha registrado un `day_in` y un `day_out`
+            if ($timesheet->day_in && $timesheet->day_out) {
+                $startTime = Carbon::parse($timesheet->day_in);
+                $finishTime = Carbon::parse($timesheet->day_out);
 
-            $totalDuration = $finishTime->diffInSeconds($startTime);
-            $sumSeconds = $sumSeconds + $totalDuration;
+                // Verifica que `day_out` sea posterior a `day_in`
+                if ($startTime->lte($finishTime)) {
+                    $totalDuration = $finishTime->diffInSeconds($startTime);
+                    $sumSeconds += $totalDuration;
+                }
+            }
+            // Si el usuario tiene un `day_in` pero no un `day_out`, está trabajando actualmente
+            elseif ($timesheet->day_in && !$timesheet->day_out) {
+                $startTime = Carbon::parse($timesheet->day_in);
 
+                // Verifica que `day_in` no sea una fecha futura
+                if ($startTime->lte(now())) {
+                    $currentDuration = now()->diffInSeconds($startTime);
+                    $sumSeconds += $currentDuration;
+                }
+            }
         }
-        $tiempoFormato = gmdate("H:i", $sumSeconds);
 
-        return $tiempoFormato;
+        $hours = floor($sumSeconds / 3600);
+        $minutes = floor(($sumSeconds % 3600) / 60);
+        $seconds = $sumSeconds % 60;
 
+        return sprintf('%02d:%02d:%02d', abs($hours), abs($minutes), abs($seconds));
     }
-    protected function getTotalPause(User $user){
+
+    protected function getTotalPause(User $user)
+    {
         $timesheets = Timesheet::where('user_id', $user->id)
-            ->where('type','pause')->whereDate('created_at', Carbon::today())->get();
+            ->where('type', 'pause')
+            ->whereDate('created_at', Carbon::today())
+            ->get();
+
         $sumSeconds = 0;
+
         foreach ($timesheets as $timesheet) {
-            # code...
-            $startTime = Carbon::parse($timesheet->day_in);
-            $finishTime = Carbon::parse($timesheet->day_out);
+            if ($timesheet->day_in && $timesheet->day_out) {
+                $startTime = Carbon::parse($timesheet->day_in);
+                $finishTime = Carbon::parse($timesheet->day_out);
 
-            $totalDuration = $finishTime->diffInSeconds($startTime);
-            $sumSeconds = $sumSeconds + $totalDuration;
+                if ($startTime->lte($finishTime)) {
+                    $totalDuration = $finishTime->diffInSeconds($startTime);
+                    $sumSeconds += $totalDuration;
+                }
+            }
+            elseif ($timesheet->day_in && !$timesheet->day_out) {
+                $startTime = Carbon::parse($timesheet->day_in);
 
+                if ($startTime->lte(now())) {
+                    $currentDuration = now()->diffInSeconds($startTime);
+                    $sumSeconds += $currentDuration;
+                }
+            }
         }
-        $tiempoFormato = gmdate("H:i", $sumSeconds);
 
-        return $tiempoFormato;
+        $hours = floor($sumSeconds / 3600);
+        $minutes = floor(($sumSeconds % 3600) / 60);
+        $seconds = $sumSeconds % 60;
 
+        return sprintf('%02d:%02d:%02d', abs($hours), abs($minutes), abs($seconds));
     }
 }
